@@ -30,7 +30,7 @@ namespace SimuladorDeColmeia
         public Point Location { get { return location; } }
         private int ID;
         private Flower destinationFlower;
-        public BeeState CurrentState {get; private set;};
+        public BeeState CurrentState {get; private set;}
 
         public Bee(int id, Point location)
         {
