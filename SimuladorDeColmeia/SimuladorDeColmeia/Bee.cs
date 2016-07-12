@@ -32,7 +32,10 @@ namespace SimuladorDeColmeia
         private Flower destinationFlower;
         public BeeState CurrentState {get; private set;}
 
-        public Bee(int id, Point location)
+        private World world;
+        private Hive hive;
+
+        public Bee(int id, Point location, World world, Hive hive)
         {
             this.ID = id;
             this.location = location;
@@ -41,6 +44,8 @@ namespace SimuladorDeColmeia
             destinationFlower = null;
             NectarCollected = 0;
             CurrentState = BeeState.Idle;
+            this.world = world;
+            this.hive = hive;
         }
 
         public void Go(Random random)

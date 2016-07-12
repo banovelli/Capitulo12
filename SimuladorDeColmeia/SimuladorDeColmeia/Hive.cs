@@ -21,13 +21,16 @@ namespace SimuladorDeColmeia
         private const int maxBee = 8;
         private const int HoneyToNewBee = 4;
 
-        public void Hive()
+        private World world;
+
+        public Hive(World world)
         {
             Honey = initialHoney;           
             InitializeLocations();
             Random random = new Random();
             for (int i = 0; i < initialBee; i++ )
                 AddBee(random);
+            this.world = world;
         }
 
         private void AddBee(Random random)
@@ -36,24 +39,16 @@ namespace SimuladorDeColmeia
             int r1 = random.Next(50);
             int r2 = random.Next(50);
             Point startPoint = new Point(locations["Berçario"].X + r1, locations["Berçario"].Y + r2);
-            Bee bee = new Bee(beeCount, startPoint); 
+            Bee bee = new Bee(beeCount, startPoint,world, this);
+            world.Bees.Add(bee);
         }
 
         public Point getLocation(string location)
         {
-            try{
+             if (locations.Keys.Contains(location))
                 return locations[location];
-            }
-            catch(ArgumentException e){
-                MessageBox.Show("Argumento localizacao inválido:" + e,"Atenção");
-                return Point.Empty;
-            }
-            /*
-             * if (locations.Keys.Contains(location))
-             *   return locations[location];
-             * else
-             *   trow new ArgumentExcption ("Unknow location: " + location);
-             * */
+             else
+                throw new ArgumentException ("Unknow location: " + location);
         }
 
         public void InitializeLocations()
@@ -84,7 +79,9 @@ namespace SimuladorDeColmeia
 
         public void Go(Random random)
         {
-            if (honeyFromNectar > HoneyToNewBee && random.Next(10) == 1)
+            if (beeCount < maxBee
+                && honeyFromNectar > HoneyToNewBee
+                && (random.Next(10) == 1))
                 AddBee(random);
         }
     }
