@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace SimuladorDeColmeia
 {
+    [Serializable]
     public class World
     {
         private const double NectarHarvestedPerNewFlower = 50.0;
@@ -19,11 +20,11 @@ namespace SimuladorDeColmeia
         public List<Bee> Bees;
         public List<Flower> Flowers;
 
-        public World()//Bee.BeeMessage messageSender
+        public World(Bee.BeeMessage messageSender)
         {
             Bees = new List<Bee>();
             Flowers = new List<Flower>();
-            Hive = new Hive(this);
+            Hive = new Hive(this, messageSender);
             Random random = new Random();
             for (int i = 0; i < 10; i++)
                 AddFlower(random);

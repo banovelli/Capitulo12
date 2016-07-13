@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace SimuladorDeColmeia
 {
+    [Serializable]
     public class Flower
     {
         private Point location;

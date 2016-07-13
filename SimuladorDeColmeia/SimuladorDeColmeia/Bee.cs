@@ -7,16 +7,18 @@ using System.Threading.Tasks;
 
 namespace SimuladorDeColmeia
 {
+    
     public enum BeeState
     {
         Idle,
-        FlyngToFlower,
+        FlyingToFlower,
         GatheringNectar,
         ReturningToHive,
         MakingHoney,
         Retired
     };
 
+    [Serializable]
     public class Bee
     {
         private const double HoneyConsumed = 0.5;
@@ -35,6 +37,9 @@ namespace SimuladorDeColmeia
         private World world;
         private Hive hive;
 
+        public delegate void BeeMessage(int ID, string Message);
+        public BeeMessage MessageSender;
+
         public Bee(int id, Point location, World world, Hive hive)
         {
             this.ID = id;
@@ -51,18 +56,39 @@ namespace SimuladorDeColmeia
         public void Go(Random random)
         {
             Age++;
+            BeeState oldSTate = CurrentState;
             switch (CurrentState)
             {
                 case BeeState.Idle:
                     if(Age > CareeSpan){
                         CurrentState = BeeState.Retired;
                     }
-                    else{
-                        //o que fazer quando ocioso --> programar ;-)
+                    else if(world.Flowers.Count > 0
+                        && hive.ConsumeHoney(HoneyConsumed))
+                    {
+                        Flower flower = world.Flowers[random.Next(world.Flowers.Count)];
+                        if (flower.Nectar >= MinimumFlowerNectar && flower.Alive)
+                        {
+                            destinationFlower = flower;
+                            CurrentState = BeeState.FlyingToFlower;
+                        }
                     }
                     break;
-                case BeeState.FlyngToFlower:
-                    //ir para uma flor
+                case BeeState.FlyingToFlower:
+                    if(!world.Flowers.Contains(destinationFlower)){
+                        CurrentState = BeeState.ReturningToHive;
+                    }
+                    else if (InsideHive)
+                    {
+                        if (MoveTowardsLocation(hive.getLocation("Saída")))
+                        {
+                            InsideHive = false;
+                            location = hive.getLocation("Entrada");
+                        }
+                    }
+                    else
+                        if (MoveTowardsLocation(destinationFlower.Location))
+                            CurrentState = BeeState.GatheringNectar;
                     break;
                 case BeeState.GatheringNectar:
                     double nectar = destinationFlower.HarvestNectar();
@@ -73,10 +99,14 @@ namespace SimuladorDeColmeia
                     break;
                 case BeeState.ReturningToHive:
                     if(!InsideHive){
-                        //ir para colmeia
+                        if(MoveTowardsLocation(hive.getLocation("Entrada"))){
+                            InsideHive = true;
+                            location = hive.getLocation("Saída");
+                        }
                     }
                     else{
-                        //o que fazer no interior
+                        if (MoveTowardsLocation(hive.getLocation("Fábrica de Mel")))
+                            CurrentState = BeeState.MakingHoney;
                     }
                     break;
                 case BeeState.MakingHoney:
@@ -85,7 +115,10 @@ namespace SimuladorDeColmeia
                         CurrentState = BeeState.Idle;
                     }
                     else{
-                        //tonar o nectar em mel
+                        if (hive.AddHoney(0.5))
+                            NectarCollected -= 0.5;
+                        else
+                            NectarCollected = 0;
                     }
                     break;
                 case BeeState.Retired:
@@ -95,6 +128,9 @@ namespace SimuladorDeColmeia
                      //não faz nada,
                     break;
             }
+            if (oldSTate != CurrentState
+                && MessageSender != null)
+                MessageSender(ID, CurrentState.ToString());
         }
 
         private bool MoveTowardsLocation(Point destination)

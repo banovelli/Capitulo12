@@ -8,6 +8,7 @@ using System.Windows.Forms;
 
 namespace SimuladorDeColmeia
 {
+    [Serializable]
     public class Hive
     {
         public double Honey { get; private set; }
@@ -23,14 +24,17 @@ namespace SimuladorDeColmeia
 
         private World world;
 
-        public Hive(World world)
+        public Bee.BeeMessage MessageSender;
+
+        public Hive(World world, Bee.BeeMessage MessageSender)
         {
+            this.MessageSender = MessageSender;
             Honey = initialHoney;           
             InitializeLocations();
+            this.world = world;
             Random random = new Random();
             for (int i = 0; i < initialBee; i++ )
                 AddBee(random);
-            this.world = world;
         }
 
         private void AddBee(Random random)
@@ -40,6 +44,7 @@ namespace SimuladorDeColmeia
             int r2 = random.Next(50);
             Point startPoint = new Point(locations["Berçario"].X + r1, locations["Berçario"].Y + r2);
             Bee bee = new Bee(beeCount, startPoint,world, this);
+            bee.MessageSender += this.MessageSender;
             world.Bees.Add(bee);
         }
 
